@@ -1,12 +1,17 @@
+import os
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from instagram.tools.search import SearchTools
-
+from langchain_openai import ChatOpenAI
 # Uncomment the following line to use an example of a custom tool
 # from instagram.tools.custom_tool import MyCustomTool
 
 # Check our tools documentations for more information on how to use them
 # from crewai_tools import SerperDevTool
+
+TOGETHER_API_KEY = os.environ.get("TOGETHER_API_KEY")
+
+Togetherllm = ChatOpenAI(temperature=0.7,base_url='https://api.together.xyz/v1', api_key=TOGETHER_API_KEY, model="NOUSRESEARCH/NOUS-HERMES-2-MIXTRAL-8X7B-SFT")
 
 
 @CrewBase
@@ -25,12 +30,13 @@ class InstagramCrew:
               SearchTools.search_instagram,
               SearchTools.open_page,
             ],
+            llm=Togetherllm,
             verbose=True,
         )
 
     @agent
     def content_strategist(self) -> Agent:
-        return Agent(config=self.agents_config["content_strategist"], verbose=True)
+        return Agent(config=self.agents_config["content_strategist"], llm=Togetherllm, verbose=True)
 
     @agent
     def visual_creator(self) -> Agent:
@@ -38,17 +44,19 @@ class InstagramCrew:
             config=self.agents_config["visual_creator"],
             verbose=True,
             allow_delegation=False,
+            llm=Togetherllm,
         )
 
     @agent
     def copywriter(self) -> Agent:
-        return Agent(config=self.agents_config["copywriter"], verbose=True)
+        return Agent(config=self.agents_config["copywriter"], llm=Togetherllm,verbose=True)
 
     @task
     def market_research(self) -> Task:
         return Task(
             config=self.tasks_config["market_research"],
             agent=self.market_researcher(),
+            llm=Togetherllm,
             output_file="market_research.md",
         )
 
@@ -89,6 +97,7 @@ class InstagramCrew:
             agents=self.agents,  # Automatically created by the @agent decorator
             tasks=self.tasks,  # Automatically created by the @task decorator
             process=Process.sequential,
+            llm=Togetherllm,
             verbose=2,
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

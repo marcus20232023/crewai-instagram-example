@@ -1,0 +1,6 @@
+#!/home/marc/crewai/crewAI-examples/crewai-instagram-example/venv/bin/python
+import sys
+from instagram.main import run
+
+if __name__ == '__main__':
+    sys.exit(run())
